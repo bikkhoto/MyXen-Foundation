@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 import Link from 'next/link';
+import { RPC_ENDPOINT } from '@/lib/constants';
 
 interface HealthStatus {
   rpc: string;
@@ -15,7 +16,7 @@ interface HealthStatus {
 
 export default function HealthPage() {
   const [status, setStatus] = useState<HealthStatus>({
-    rpc: 'https://api.mainnet-beta.solana.com',
+    rpc: RPC_ENDPOINT,
     connected: false,
     slot: null,
     blockTime: null,
@@ -31,7 +32,7 @@ export default function HealthPage() {
   const checkHealth = async () => {
     setLoading(true);
     try {
-      const connection = new Connection(status.rpc, 'confirmed');
+      const connection = new Connection(RPC_ENDPOINT, 'confirmed');
       
       // Get current slot
       const slot = await connection.getSlot();
@@ -43,18 +44,21 @@ export default function HealthPage() {
       const version = await connection.getVersion();
       
       setStatus({
-        ...status,
+        rpc: RPC_ENDPOINT,
         connected: true,
         slot,
         blockTime,
         version: version['solana-core'],
         error: null,
       });
-    } catch (error: any) {
+    } catch (error) {
       setStatus({
-        ...status,
+        rpc: RPC_ENDPOINT,
         connected: false,
-        error: error.message || 'Failed to connect to Solana RPC',
+        slot: null,
+        blockTime: null,
+        version: null,
+        error: error instanceof Error ? error.message : 'Failed to connect to Solana RPC',
       });
     } finally {
       setLoading(false);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { RPC_ENDPOINT } from '@/lib/constants';
 
 interface WalletInfo {
   name: string;
@@ -10,28 +11,31 @@ interface WalletInfo {
   loading: boolean;
 }
 
+// Initial wallet configuration
+const INITIAL_WALLETS: WalletInfo[] = [
+  {
+    name: 'Development Fund',
+    address: 'DevWa11etAddressHere1111111111111111111',
+    balance: null,
+    loading: true,
+  },
+  {
+    name: 'Community Treasury',
+    address: 'ComTreasAddressHere2222222222222222222',
+    balance: null,
+    loading: true,
+  },
+];
+
 export function DeveloperWallets() {
-  const [wallets, setWallets] = useState<WalletInfo[]>([
-    {
-      name: 'Development Fund',
-      address: 'DevWa11etAddressHere1111111111111111111',
-      balance: null,
-      loading: true,
-    },
-    {
-      name: 'Community Treasury',
-      address: 'ComTreasAddressHere2222222222222222222',
-      balance: null,
-      loading: true,
-    },
-  ]);
+  const [wallets, setWallets] = useState<WalletInfo[]>(INITIAL_WALLETS);
 
   useEffect(() => {
     const fetchBalances = async () => {
-      const connection = new Connection('https://api.mainnet-beta.solana.com');
+      const connection = new Connection(RPC_ENDPOINT);
       
       const updatedWallets = await Promise.all(
-        wallets.map(async (wallet) => {
+        INITIAL_WALLETS.map(async (wallet) => {
           try {
             const publicKey = new PublicKey(wallet.address);
             const balance = await connection.getBalance(publicKey);
