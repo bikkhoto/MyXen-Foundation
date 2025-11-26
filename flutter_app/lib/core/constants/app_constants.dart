@@ -16,7 +16,13 @@ class AppConstants {
   static const Color successColor = Color(0xFF10B981);
 
   // API Configuration
-  static const String baseUrl = 'http://localhost:8000/api';
+  // In production, use environment variables or Flutter flavor configs
+  // For development: http://localhost:8000/api
+  // For Android emulator: http://10.0.2.2:8000/api
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8000/api',
+  );
   static const Duration apiTimeout = Duration(seconds: 30);
 
   // Storage Keys

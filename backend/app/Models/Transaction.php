@@ -11,6 +11,12 @@ class Transaction extends Model
     use HasFactory;
 
     /**
+     * Transaction reference constants
+     */
+    private const REFERENCE_PREFIX = 'TXN-';
+    private const REFERENCE_LENGTH = 12;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -56,7 +62,7 @@ class Transaction extends Model
                 $model->uuid = (string) Str::uuid();
             }
             if (empty($model->reference)) {
-                $model->reference = 'TXN-' . strtoupper(Str::random(12));
+                $model->reference = self::REFERENCE_PREFIX . strtoupper(Str::random(self::REFERENCE_LENGTH));
             }
         });
     }

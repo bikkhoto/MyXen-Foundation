@@ -7,6 +7,13 @@ use Illuminate\Support\Facades\Log;
 
 class SolanaRpcService
 {
+    /**
+     * Solana address validation constants
+     */
+    private const ADDRESS_MIN_LENGTH = 32;
+    private const ADDRESS_MAX_LENGTH = 44;
+    private const LAMPORTS_PER_SOL = 1_000_000_000;
+
     protected string $rpcUrl;
     protected string $network;
 
@@ -24,7 +31,7 @@ class SolanaRpcService
         $response = $this->rpcCall('getBalance', [$address]);
 
         if ($response && isset($response['result']['value'])) {
-            return $response['result']['value'] / 1_000_000_000; // Convert lamports to SOL
+            return $response['result']['value'] / self::LAMPORTS_PER_SOL;
         }
 
         return null;
@@ -110,8 +117,8 @@ class SolanaRpcService
      */
     public function isValidAddress(string $address): bool
     {
-        // Basic validation - Solana addresses are base58 encoded and 32-44 characters
-        if (strlen($address) < 32 || strlen($address) > 44) {
+        // Basic validation - Solana addresses are base58 encoded
+        if (strlen($address) < self::ADDRESS_MIN_LENGTH || strlen($address) > self::ADDRESS_MAX_LENGTH) {
             return false;
         }
 
