@@ -1,0 +1,583 @@
+openapi: 3.0.3
+info:
+  title: MyXenPay API
+  description: |
+    API documentation for the MyXenPay ecosystem.
+    
+    ## Authentication
+    Most endpoints require authentication using Bearer tokens (Sanctum).
+    Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-token>
+    ```
+    
+    ## Rate Limiting
+    API requests are rate-limited to 60 requests per minute.
+    
+  version: 1.0.0
+  contact:
+    email: api@myxenpay.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development
+  - url: https://api.myxenpay.com
+    description: Production
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Wallet
+    description: Wallet management and transactions
+  - name: Health
+    description: System health check
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns system health status
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  version:
+                    type: string
+                    example: 1.0.0
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Creates a new user account and returns authentication token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - password_confirmation
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: password123
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: password123
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: 1|abcdef123456...
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticates user and returns access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: password123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: 1|abcdef123456...
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid credentials
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Revokes the current access token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh token
+      description: Revokes current token and issues a new one
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Token refreshed
+                  token:
+                    type: string
+                    example: 2|newtoken...
+
+  /auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Get user profile
+      description: Returns authenticated user profile with roles and wallets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /wallet:
+    get:
+      tags:
+        - Wallet
+      summary: List user wallets
+      description: Returns all wallets for the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of wallets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wallets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Wallet'
+                  total_balance:
+                    type: object
+                    additionalProperties:
+                      type: number
+                    example:
+                      MYXN: 100.5
+
+  /wallet/{wallet}:
+    get:
+      tags:
+        - Wallet
+      summary: Get wallet details
+      description: Returns details of a specific wallet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: wallet
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Wallet details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wallet:
+                    $ref: '#/components/schemas/Wallet'
+                  recent_transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+        '403':
+          description: Forbidden - wallet belongs to another user
+
+  /wallet/transfer:
+    post:
+      tags:
+        - Wallet
+      summary: Transfer funds
+      description: Transfer funds to another wallet within the system
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to_address
+                - amount
+              properties:
+                from_wallet_id:
+                  type: integer
+                  description: Source wallet ID (defaults to primary)
+                to_address:
+                  type: string
+                  description: Recipient wallet address
+                  example: USER_abc123...
+                amount:
+                  type: number
+                  minimum: 0.000000001
+                  example: 10.5
+                currency:
+                  type: string
+                  enum: [MYXN, SOL]
+                  default: MYXN
+                description:
+                  type: string
+                  maxLength: 500
+                  example: Payment for services
+      responses:
+        '200':
+          description: Transfer completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Transfer completed successfully
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Insufficient balance or invalid request
+
+  /wallet/withdraw:
+    post:
+      tags:
+        - Wallet
+      summary: Withdraw to blockchain
+      description: Queue a withdrawal to an external blockchain address
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to_address
+                - amount
+              properties:
+                from_wallet_id:
+                  type: integer
+                to_address:
+                  type: string
+                  description: External Solana wallet address
+                  example: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
+                amount:
+                  type: number
+                  minimum: 0.000000001
+                  example: 10.5
+                currency:
+                  type: string
+                  enum: [MYXN, SOL]
+                  default: MYXN
+      responses:
+        '202':
+          description: Withdrawal queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Withdrawal queued for processing
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Insufficient balance
+
+  /wallet/{wallet}/transactions:
+    get:
+      tags:
+        - Wallet
+      summary: Get transaction history
+      description: Returns paginated transaction history for a wallet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: wallet
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  current_page:
+                    type: integer
+                  total:
+                    type: integer
+                  per_page:
+                    type: integer
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Sanctum token obtained from login/register
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        wallets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Wallet'
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: user
+        display_name:
+          type: string
+          example: User
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        address:
+          type: string
+          example: USER_abc123def456...
+        currency:
+          type: string
+          example: MYXN
+        balance:
+          type: number
+          format: float
+          example: 100.5
+        pending_balance:
+          type: number
+          format: float
+          example: 0
+        is_primary:
+          type: boolean
+          example: true
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Transaction:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [deposit, withdrawal, transfer, payment, refund, fee]
+        direction:
+          type: string
+          enum: [in, out]
+        amount:
+          type: number
+          format: float
+          example: 10.5
+        fee:
+          type: number
+          format: float
+          example: 0.001
+        currency:
+          type: string
+          example: MYXN
+        status:
+          type: string
+          enum: [pending, processing, completed, failed, cancelled]
+        blockchain_tx:
+          type: string
+          nullable: true
+          example: 5zN8g7K...
+        to_address:
+          type: string
+          nullable: true
+        from_address:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+              - The email field is required.

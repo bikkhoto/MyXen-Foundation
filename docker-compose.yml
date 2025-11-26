@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # PHP Application (Laravel)
+  php:
+    build:
+      context: ./backend
+      dockerfile: ../infra/docker/php/Dockerfile
+    container_name: myxenpay-php
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - myxenpay-network
+    depends_on:
+      - mysql
+      - redis
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: myxenpay-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./infra/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - myxenpay-network
+    depends_on:
+      - php
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: myxenpay-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
+      MYSQL_DATABASE: ${DB_DATABASE:-myxenpay}
+      MYSQL_USER: ${DB_USERNAME:-myxenpay}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - myxenpay-network
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:alpine
+    container_name: myxenpay-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - myxenpay-network
+
+  # Workspace (for running artisan, composer, npm commands)
+  workspace:
+    build:
+      context: ./backend
+      dockerfile: ../infra/docker/workspace/Dockerfile
+    container_name: myxenpay-workspace
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - myxenpay-network
+    depends_on:
+      - mysql
+      - redis
+    tty: true
+
+  # PostgreSQL (optional alternative to MySQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: myxenpay-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-myxenpay}
+      POSTGRES_USER: ${DB_USERNAME:-myxenpay}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - myxenpay-network
+    profiles:
+      - postgres
+
+networks:
+  myxenpay-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
+  postgres-data:

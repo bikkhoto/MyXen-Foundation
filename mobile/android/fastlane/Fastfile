@@ -1,0 +1,36 @@
+# Fastfile for Android
+# MyXenPay Android deployment automation
+
+default_platform(:android)
+
+platform :android do
+  desc "Build debug APK"
+  lane :debug do
+    sh "flutter build apk --debug"
+  end
+
+  desc "Build release APK"
+  lane :release do
+    sh "flutter build apk --release"
+  end
+
+  desc "Deploy to internal testing track"
+  lane :beta do
+    # TODO: Configure Google Play credentials
+    # upload_to_play_store(
+    #   track: 'internal',
+    #   aab: '../build/app/outputs/bundle/release/app-release.aab'
+    # )
+    puts "Beta deployment configured - add Google Play credentials"
+  end
+
+  desc "Deploy to production"
+  lane :deploy do
+    # TODO: Configure Google Play credentials
+    # upload_to_play_store(
+    #   track: 'production',
+    #   aab: '../build/app/outputs/bundle/release/app-release.aab'
+    # )
+    puts "Production deployment configured - add Google Play credentials"
+  end
+end

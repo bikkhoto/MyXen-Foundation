@@ -1,30 +1,55 @@
+# Dependencies
 /vendor/
 node_modules/
 npm-debug.log
 yarn-error.log
 
-# Laravel 4 specific
+# Laravel specific
 bootstrap/compiled.php
 app/storage/
-
-# Laravel 5 & Lumen specific
 public/storage
 public/hot
-
-# Laravel 5 & Lumen specific with changed public path
 public_html/storage
 public_html/hot
-
 storage/*.key
 .env
+.env.backup
+.env.production
 Homestead.yaml
 Homestead.json
 /.vagrant
 .phpunit.result.cache
-
 /public/build
 /storage/pail
-.env.backup
-.env.production
 .phpactor.json
 auth.json
+
+# Backend specific
+backend/vendor/
+backend/.env
+backend/storage/*.key
+backend/.phpunit.result.cache
+backend/database/database.sqlite
+
+# Mobile specific
+mobile/build/
+mobile/.dart_tool/
+mobile/.packages
+mobile/.pub/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
