@@ -1,30 +1,65 @@
-/vendor/
+# Laravel Backend
+/backend/vendor/
+/backend/node_modules/
+/backend/.env
+/backend/.phpunit.result.cache
+/backend/storage/*.key
+/backend/public/storage
+/backend/public/hot
+/backend/public/build
+/backend/storage/pail
+/backend/.env.backup
+/backend/.env.production
+/backend/.phpactor.json
+/backend/auth.json
+/backend/Homestead.yaml
+/backend/Homestead.json
+/backend/.vagrant
+/backend/bootstrap/compiled.php
+/backend/storage/app/*
+!/backend/storage/app/.gitkeep
+/backend/storage/framework/cache/*
+!/backend/storage/framework/cache/.gitkeep
+/backend/storage/framework/sessions/*
+!/backend/storage/framework/sessions/.gitkeep
+/backend/storage/framework/views/*
+!/backend/storage/framework/views/.gitkeep
+/backend/storage/logs/*
+!/backend/storage/logs/.gitkeep
+
+# Flutter App
+/flutter_app/.dart_tool/
+/flutter_app/.packages
+/flutter_app/.pub/
+/flutter_app/build/
+/flutter_app/.flutter-plugins
+/flutter_app/.flutter-plugins-dependencies
+/flutter_app/.metadata
+/flutter_app/pubspec.lock
+/flutter_app/*.iml
+/flutter_app/.idea/
+/flutter_app/android/.gradle/
+/flutter_app/android/local.properties
+/flutter_app/android/*.keystore
+/flutter_app/ios/Pods/
+/flutter_app/ios/.symlinks/
+/flutter_app/ios/Flutter/Flutter.framework
+/flutter_app/ios/Flutter/Flutter.podspec
+/flutter_app/ios/Flutter/Generated.xcconfig
+/flutter_app/ios/Flutter/app.flx
+/flutter_app/ios/Flutter/app.zip
+/flutter_app/ios/Flutter/flutter_assets/
+/flutter_app/ios/ServiceDefinitions.json
+/flutter_app/coverage/
+
+# Node.js
 node_modules/
 npm-debug.log
 yarn-error.log
 
-# Laravel 4 specific
-bootstrap/compiled.php
-app/storage/
-
-# Laravel 5 & Lumen specific
-public/storage
-public/hot
-
-# Laravel 5 & Lumen specific with changed public path
-public_html/storage
-public_html/hot
-
-storage/*.key
-.env
-Homestead.yaml
-Homestead.json
-/.vagrant
-.phpunit.result.cache
-
-/public/build
-/storage/pail
-.env.backup
-.env.production
-.phpactor.json
-auth.json
+# IDE
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
