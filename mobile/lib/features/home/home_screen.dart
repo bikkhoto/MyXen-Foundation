@@ -82,12 +82,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // Already on home
               break;
             case 1:
-              context.go('/wallet');
+              context.go('/services');
               break;
             case 2:
-              context.go('/scan');
+              context.go('/wallet');
               break;
             case 3:
+              context.go('/scan');
+              break;
+            case 4:
               context.go('/profile');
               break;
           }
@@ -96,6 +99,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.apps),
+            label: 'Services',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance_wallet),
