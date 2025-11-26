@@ -12,6 +12,9 @@ on:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: PHP Lint & Code Style

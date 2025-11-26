@@ -12,12 +12,19 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // WARNING: These are default development passwords.
+        // NEVER use in production without changing credentials!
+        // TODO: In production, use secure password generation or environment variables
+        $defaultPassword = app()->environment('production')
+            ? throw new \RuntimeException('Cannot seed default passwords in production. Use secure credentials.')
+            : 'password';
+
         // Create admin user
         $admin = User::firstOrCreate(
             ['email' => 'admin@myxenpay.com'],
             [
                 'name' => 'Admin User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make($defaultPassword),
                 'email_verified_at' => now(),
             ]
         );
@@ -39,7 +46,7 @@ class UserSeeder extends Seeder
             ['email' => 'merchant@example.com'],
             [
                 'name' => 'Sample Merchant',
-                'password' => Hash::make('password'),
+                'password' => Hash::make($defaultPassword),
                 'email_verified_at' => now(),
             ]
         );
@@ -61,7 +68,7 @@ class UserSeeder extends Seeder
             ['email' => 'university@example.edu'],
             [
                 'name' => 'Sample University',
-                'password' => Hash::make('password'),
+                'password' => Hash::make($defaultPassword),
                 'email_verified_at' => now(),
             ]
         );
@@ -83,7 +90,7 @@ class UserSeeder extends Seeder
             ['email' => 'user@example.com'],
             [
                 'name' => 'Sample User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make($defaultPassword),
                 'email_verified_at' => now(),
             ]
         );
