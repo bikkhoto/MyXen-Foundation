@@ -100,11 +100,11 @@ class WalletState {
   }
 
   Wallet? get primaryWallet {
-    try {
-      return wallets.firstWhere((w) => w.isPrimary);
-    } catch (e) {
-      return wallets.isNotEmpty ? wallets.first : null;
+    final primaryWallets = wallets.where((w) => w.isPrimary);
+    if (primaryWallets.isNotEmpty) {
+      return primaryWallets.first;
     }
+    return wallets.isNotEmpty ? wallets.first : null;
   }
 
   double get totalBalance {

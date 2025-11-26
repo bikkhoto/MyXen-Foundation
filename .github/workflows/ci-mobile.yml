@@ -12,6 +12,9 @@ on:
       - 'mobile/**'
       - '.github/workflows/ci-mobile.yml'
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Flutter Analyze
