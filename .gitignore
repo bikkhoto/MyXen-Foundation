@@ -53,3 +53,12 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Rust/Anchor build artifacts
+**/target/debug/
+**/target/release/
+**/target/deploy/*.so
+**/target/deploy/*-keypair.json
+**/target/sbpf-solana-solana/
+**/.anchor/
+**/test-ledger/
