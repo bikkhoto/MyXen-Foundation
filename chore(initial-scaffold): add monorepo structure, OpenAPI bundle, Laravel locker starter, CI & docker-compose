@@ -1,0 +1,33 @@
+This PR bootstraps the MyXen monorepo with an initial scaffold to accelerate development.
+
+Included:
+- Monorepo top-level structure and service directories (/services, /mobile, /infra, /docs)
+- OpenAPI bundle and locker service OpenAPI skeleton (/services/locker-service/openapi/myxen_locker_openapi.json)
+- Laravel starter for locker-service:
+  - routes/api.php (auth + locks endpoints)
+  - Controllers: AuthController.php, LockController.php (skeleton)
+  - Service: SolanaService.php (interface)
+  - Example migration: create_locks_table
+  - Models: User.php, Lock.php (basic)
+- docker-compose.yml for local development (app, db, redis, solana-service)
+- GitHub Actions CI workflow (ci.yml) to run PHP composer install, phpunit and static checks
+- .env.example with required environment variable placeholders
+- README.md (top-level) updated with overview and next steps
+
+Why:
+- Provides a reproducible local dev environment
+- Adds the OpenAPI for locker so teams can generate stubs
+- Minimal, secure-by-default starter code for immediate integration with solana microservice
+
+How to test:
+1. Checkout branch locally
+2. `docker compose up -d`
+3. `docker compose exec app composer install`
+4. `php artisan migrate`
+5. Run `php artisan test` and ensure basic tests pass
+
+Notes:
+- No private keys or secrets included — uses placeholders and expects KMS for production keys.
+- Solana signature verification is stubbed in SolanaService and should be implemented by the solana-service or using an audited php library.
+
+Please review the files below. I can open follow-up PRs to scaffold further services (auth, treasury, payments) once this lands.

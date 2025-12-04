@@ -1,0 +1,40 @@
+# Fastfile for iOS
+# MyXenPay iOS deployment automation
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build debug IPA"
+  lane :debug do
+    sh "flutter build ios --debug"
+  end
+
+  desc "Build release IPA"
+  lane :release do
+    sh "flutter build ios --release"
+  end
+
+  desc "Deploy to TestFlight"
+  lane :beta do
+    # TODO: Configure App Store Connect credentials
+    # build_app(
+    #   workspace: "Runner.xcworkspace",
+    #   scheme: "Runner",
+    #   export_method: "app-store"
+    # )
+    # upload_to_testflight
+    puts "TestFlight deployment configured - add App Store Connect credentials"
+  end
+
+  desc "Deploy to App Store"
+  lane :deploy do
+    # TODO: Configure App Store Connect credentials
+    # build_app(
+    #   workspace: "Runner.xcworkspace",
+    #   scheme: "Runner",
+    #   export_method: "app-store"
+    # )
+    # upload_to_app_store
+    puts "App Store deployment configured - add App Store Connect credentials"
+  end
+end
