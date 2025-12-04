@@ -151,8 +151,7 @@ class WalletController extends Controller
             'from_address' => $wallet->solana_address,
         ]);
 
-        // Deduct from wallet (in real implementation, this would happen after blockchain confirmation)
-        $wallet->withdraw($validated['amount'] + $fee, $validated['currency']);
+        // Deduct from wallet will happen after blockchain confirmation (see comment above)
 
         return $this->success([
             'transaction' => $transaction,
