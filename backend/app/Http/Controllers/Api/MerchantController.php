@@ -234,8 +234,8 @@ class MerchantController extends Controller
             'description' => "Payment to {$merchant->business_name}",
         ]);
 
-        // Deduct from wallet
-        $wallet->withdraw($validated['amount'] + $fee, $validated['currency']);
+        // Do NOT deduct from wallet here. Deduct funds only after transaction is confirmed (e.g., via webhook or callback).
+        // $wallet->withdraw($validated['amount'] + $fee, $validated['currency']);
 
         return $this->success([
             'transaction' => $transaction,
