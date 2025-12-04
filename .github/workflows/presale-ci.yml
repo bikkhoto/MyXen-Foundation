@@ -1,0 +1,333 @@
+name: Presale System CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # ============================================================================
+  # Anchor Build & Test
+  # ============================================================================
+  anchor-build:
+    name: Build Anchor Program
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            anchor-presale/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v1.17.0/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 anchor-cli --locked
+      
+      - name: Verify installations
+        run: |
+          rustc --version
+          cargo --version
+          solana --version
+          anchor --version
+      
+      - name: Build Anchor program
+        working-directory: ./anchor-presale
+        run: anchor build
+      
+      - name: Upload program artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: anchor-program
+          path: |
+            anchor-presale/target/deploy/*.so
+            anchor-presale/target/idl/*.json
+          retention-days: 7
+
+  anchor-test:
+    name: Test Anchor Program
+    runs-on: ubuntu-latest
+    needs: anchor-build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v1.17.0/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 anchor-cli --locked
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Node dependencies
+        working-directory: ./anchor-presale
+        run: yarn install
+      
+      - name: Start local Solana validator
+        working-directory: ./anchor-presale
+        run: |
+          solana-test-validator --reset &
+          sleep 10
+      
+      - name: Run Anchor tests
+        working-directory: ./anchor-presale
+        run: anchor test --skip-local-validator
+        env:
+          ANCHOR_PROVIDER_URL: http://127.0.0.1:8899
+          ANCHOR_WALLET: ~/.config/solana/id.json
+
+  # ============================================================================
+  # Laravel Build & Test
+  # ============================================================================
+  laravel-test:
+    name: Test Laravel Backend
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, json, bcmath, sodium, gmp
+          coverage: xdebug
+      
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: services/api/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      
+      - name: Install Composer dependencies
+        working-directory: ./services/api
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      
+      - name: Copy .env.testing
+        working-directory: ./services/api
+        run: |
+          cp .env.example .env.testing
+          php artisan key:generate --env=testing
+      
+      - name: Configure testing environment
+        working-directory: ./services/api
+        run: |
+          echo "DB_CONNECTION=mysql" >> .env.testing
+          echo "DB_HOST=127.0.0.1" >> .env.testing
+          echo "DB_PORT=3306" >> .env.testing
+          echo "DB_DATABASE=testing" >> .env.testing
+          echo "DB_USERNAME=root" >> .env.testing
+          echo "DB_PASSWORD=root" >> .env.testing
+      
+      - name: Generate voucher signer keypair for testing
+        run: |
+          mkdir -p ~/.myxen/keys
+          # Generate a test keypair (64 random bytes as JSON array)
+          php -r 'echo json_encode(array_values(unpack("C*", random_bytes(64))));' > ~/.myxen/keys/voucher-signer.json
+          chmod 600 ~/.myxen/keys/voucher-signer.json
+          echo "VOUCHER_SIGNER_KEYPATH=$HOME/.myxen/keys/voucher-signer.json" >> ./services/api/.env.testing
+      
+      - name: Run migrations
+        working-directory: ./services/api
+        run: php artisan migrate --env=testing --force
+      
+      - name: Run Laravel tests
+        working-directory: ./services/api
+        run: php artisan test tests/Feature/Services/Sale --env=testing
+      
+      - name: Run Laravel tests with coverage
+        working-directory: ./services/api
+        run: php artisan test tests/Feature/Services/Sale --coverage --env=testing
+        continue-on-error: true
+
+  # ============================================================================
+  # Linting & Code Quality
+  # ============================================================================
+  lint-rust:
+    name: Lint Rust Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt, clippy
+          override: true
+      
+      - name: Check Rust formatting
+        working-directory: ./anchor-presale/programs/anchor-presale
+        run: cargo fmt -- --check
+      
+      - name: Run Clippy
+        working-directory: ./anchor-presale/programs/anchor-presale
+        run: cargo clippy -- -D warnings
+
+  lint-typescript:
+    name: Lint TypeScript Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: ./anchor-presale
+        run: yarn install
+      
+      - name: Run ESLint
+        working-directory: ./anchor-presale
+        run: yarn lint
+        continue-on-error: true
+      
+      - name: Run Prettier check
+        working-directory: ./anchor-presale
+        run: yarn prettier --check "**/*.{ts,tsx,js,jsx,json}"
+        continue-on-error: true
+
+  lint-php:
+    name: Lint PHP Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: phpcs, phpstan
+      
+      - name: Install Composer dependencies
+        working-directory: ./services/api
+        run: composer install --no-interaction --prefer-dist
+      
+      - name: Run PHP_CodeSniffer
+        working-directory: ./services/api
+        run: |
+          vendor/bin/phpcs --standard=PSR12 app/Http/Controllers/Services/Sale app/Models/Models/SaleVoucher.php
+        continue-on-error: true
+      
+      - name: Run PHPStan
+        working-directory: ./services/api
+        run: |
+          vendor/bin/phpstan analyse app/Http/Controllers/Services/Sale app/Models/Models/SaleVoucher.php --level=5
+        continue-on-error: true
+
+  # ============================================================================
+  # Security Checks
+  # ============================================================================
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Audit Rust dependencies
+        working-directory: ./anchor-presale/programs/anchor-presale
+        run: |
+          cargo install cargo-audit
+          cargo audit
+        continue-on-error: true
+      
+      - name: Audit Node dependencies
+        working-directory: ./anchor-presale
+        run: |
+          yarn audit
+        continue-on-error: true
+      
+      - name: Audit PHP dependencies
+        working-directory: ./services/api
+        run: |
+          composer audit
+        continue-on-error: true
+
+  # ============================================================================
+  # Build Summary
+  # ============================================================================
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [anchor-build, anchor-test, laravel-test, lint-rust, lint-typescript, lint-php, security-audit]
+    if: always()
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All jobs completed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Anchor Build: ${{ needs.anchor-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Anchor Test: ${{ needs.anchor-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Laravel Test: ${{ needs.laravel-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint Rust: ${{ needs.lint-rust.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint TypeScript: ${{ needs.lint-typescript.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint PHP: ${{ needs.lint-php.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Audit: ${{ needs.security-audit.result }}" >> $GITHUB_STEP_SUMMARY

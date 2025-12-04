@@ -1,0 +1,617 @@
+{
+  "address": "7RMrnnQC1pckXgLWdqw6mqQT5QSmyUSKjcsHmTt5CTQV",
+  "metadata": {
+    "name": "anchor_presale",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Solana token presale with vesting and voucher-based purchases"
+  },
+  "instructions": [
+    {
+      "name": "buy_with_voucher",
+      "docs": [
+        "Buy tokens using a voucher signed by the backend voucher signer",
+        "Verifies the ed25519 signature and transfers SOL to treasury",
+        "",
+        "# Arguments",
+        "* `allocation` - Amount of tokens to purchase",
+        "* `voucher` - VoucherData struct containing buyer, sale, max_allocation, nonce, expiry",
+        "* `signature` - Ed25519 signature from backend voucher signer (64 bytes)"
+      ],
+      "discriminator": [42, 121, 109, 45, 10, 142, 67, 211],
+      "accounts": [
+        {
+          "name": "sale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 97, 108, 101, 95, 99, 111, 110, 102, 105, 103]
+              },
+              {
+                "kind": "account",
+                "path": "sale_config.owner",
+                "account": "SaleConfig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer_escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 117, 121, 101, 114, 95, 101, 115, 99, 114, 111, 119]
+              },
+              {
+                "kind": "account",
+                "path": "sale_config"
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "voucher_signer"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "allocation",
+          "type": "u64"
+        },
+        {
+          "name": "voucher",
+          "type": {
+            "defined": {
+              "name": "VoucherData"
+            }
+          }
+        },
+        {
+          "name": "signature",
+          "type": {
+            "array": ["u8", 64]
+          }
+        }
+      ]
+    },
+    {
+      "name": "claim_vested",
+      "docs": [
+        "Claim vested tokens based on the vesting schedule",
+        "Beneficiary can call this to claim their vested tokens"
+      ],
+      "discriminator": [208, 190, 166, 114, 203, 225, 140, 208],
+      "accounts": [
+        {
+          "name": "vesting",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [118, 101, 115, 116, 105, 110, 103]
+              },
+              {
+                "kind": "account",
+                "path": "beneficiary"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vesting_vault",
+          "writable": true
+        },
+        {
+          "name": "beneficiary_token_account",
+          "writable": true
+        },
+        {
+          "name": "beneficiary",
+          "signer": true,
+          "relations": ["vesting"]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_vesting",
+      "docs": [
+        "Create a vesting schedule for a beneficiary",
+        "Only the sale owner can call this",
+        "",
+        "# Arguments",
+        "* `beneficiary` - Wallet that will receive vested tokens",
+        "* `total_amount` - Total tokens to vest",
+        "* `start_ts` - Vesting start timestamp",
+        "* `cliff_seconds` - Cliff period in seconds (no tokens before this)",
+        "* `duration_seconds` - Total vesting duration in seconds",
+        "* `revocable` - Whether owner can revoke this vesting"
+      ],
+      "discriminator": [135, 184, 171, 156, 197, 162, 246, 44],
+      "accounts": [
+        {
+          "name": "sale_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 97, 108, 101, 95, 99, 111, 110, 102, 105, 103]
+              },
+              {
+                "kind": "account",
+                "path": "sale_config.owner",
+                "account": "SaleConfig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vesting",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [118, 101, 115, 116, 105, 110, 103]
+              },
+              {
+                "kind": "arg",
+                "path": "beneficiary"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": ["sale_config"]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "beneficiary",
+          "type": "pubkey"
+        },
+        {
+          "name": "total_amount",
+          "type": "u64"
+        },
+        {
+          "name": "start_ts",
+          "type": "i64"
+        },
+        {
+          "name": "cliff_seconds",
+          "type": "u64"
+        },
+        {
+          "name": "duration_seconds",
+          "type": "u64"
+        },
+        {
+          "name": "revocable",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "initialize_sale",
+      "docs": [
+        "Initialize a new token sale configuration",
+        "Only the sale owner can call this",
+        "",
+        "# Arguments",
+        "* `price_lamports_per_token` - Price in lamports per token (with decimals)",
+        "* `start_ts` - Unix timestamp when sale starts",
+        "* `end_ts` - Unix timestamp when sale ends",
+        "* `total_allocated` - Total tokens allocated for this sale"
+      ],
+      "discriminator": [208, 103, 34, 154, 179, 6, 125, 208],
+      "accounts": [
+        {
+          "name": "sale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 97, 108, 101, 95, 99, 111, 110, 102, 105, 103]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "treasury"
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "price_lamports_per_token",
+          "type": "u64"
+        },
+        {
+          "name": "start_ts",
+          "type": "i64"
+        },
+        {
+          "name": "end_ts",
+          "type": "i64"
+        },
+        {
+          "name": "total_allocated",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "revoke_vesting",
+      "docs": [
+        "Revoke a vesting schedule (if revocable)",
+        "Only the sale owner can call this",
+        "Returns unvested tokens to treasury"
+      ],
+      "discriminator": [12, 252, 252, 168, 39, 101, 98, 9],
+      "accounts": [
+        {
+          "name": "sale_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 97, 108, 101, 95, 99, 111, 110, 102, 105, 103]
+              },
+              {
+                "kind": "account",
+                "path": "sale_config.owner",
+                "account": "SaleConfig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vesting",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [118, 101, 115, 116, 105, 110, 103]
+              },
+              {
+                "kind": "account",
+                "path": "vesting.beneficiary",
+                "account": "Vesting"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vesting_vault",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": ["sale_config"]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BuyerEscrow",
+      "discriminator": [13, 225, 10, 42, 250, 91, 230, 149]
+    },
+    {
+      "name": "SaleConfig",
+      "discriminator": [86, 47, 71, 156, 87, 152, 149, 246]
+    },
+    {
+      "name": "Vesting",
+      "discriminator": [100, 149, 66, 138, 95, 200, 128, 241]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidTimeRange",
+      "msg": "Invalid time range: start must be before end"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAllocation",
+      "msg": "Invalid allocation amount"
+    },
+    {
+      "code": 6002,
+      "name": "SaleNotStarted",
+      "msg": "Sale has not started yet"
+    },
+    {
+      "code": 6003,
+      "name": "SaleEnded",
+      "msg": "Sale has ended"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidVoucher",
+      "msg": "Invalid voucher data"
+    },
+    {
+      "code": 6005,
+      "name": "VoucherExpired",
+      "msg": "Voucher has expired"
+    },
+    {
+      "code": 6006,
+      "name": "ExceedsAllocation",
+      "msg": "Allocation exceeds voucher limit"
+    },
+    {
+      "code": 6007,
+      "name": "InsufficientSupply",
+      "msg": "Insufficient supply remaining"
+    },
+    {
+      "code": 6008,
+      "name": "VoucherAlreadyUsed",
+      "msg": "Voucher has already been used"
+    },
+    {
+      "code": 6009,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6010,
+      "name": "Underflow",
+      "msg": "Arithmetic underflow"
+    },
+    {
+      "code": 6011,
+      "name": "DivisionByZero",
+      "msg": "Division by zero"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidDuration",
+      "msg": "Invalid vesting duration"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidCliff",
+      "msg": "Invalid cliff period"
+    },
+    {
+      "code": 6014,
+      "name": "VestingRevoked",
+      "msg": "Vesting has been revoked"
+    },
+    {
+      "code": 6015,
+      "name": "NothingToClaim",
+      "msg": "Nothing to claim"
+    },
+    {
+      "code": 6016,
+      "name": "NotRevocable",
+      "msg": "Not revocable"
+    },
+    {
+      "code": 6017,
+      "name": "AlreadyRevoked",
+      "msg": "Already revoked"
+    },
+    {
+      "code": 6018,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    }
+  ],
+  "types": [
+    {
+      "name": "BuyerEscrow",
+      "docs": ["Buyer escrow account (tracks allocation)"],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "sale",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "allocation",
+            "type": "u64"
+          },
+          {
+            "name": "claimed",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SaleConfig",
+      "docs": ["Sale configuration account"],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "price_lamports_per_token",
+            "type": "u64"
+          },
+          {
+            "name": "start_ts",
+            "type": "i64"
+          },
+          {
+            "name": "end_ts",
+            "type": "i64"
+          },
+          {
+            "name": "total_allocated",
+            "type": "u64"
+          },
+          {
+            "name": "sold",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Vesting",
+      "docs": ["Vesting schedule account"],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "released",
+            "type": "u64"
+          },
+          {
+            "name": "start_ts",
+            "type": "i64"
+          },
+          {
+            "name": "cliff_seconds",
+            "type": "u64"
+          },
+          {
+            "name": "duration_seconds",
+            "type": "u64"
+          },
+          {
+            "name": "revocable",
+            "type": "bool"
+          },
+          {
+            "name": "revoked",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoucherData",
+      "docs": ["Voucher data signed by backend server"],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "sale",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_allocation",
+            "type": "u64"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "expiry_ts",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

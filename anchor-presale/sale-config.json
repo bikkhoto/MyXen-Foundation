@@ -1,0 +1,14 @@
+{
+  "saleConfigAddress": "6RJkCXchhSJh6STRo5gN4axqeubE9xAEGsTgsaoCTNvQ",
+  "programId": "7RMrnnQC1pckXgLWdqw6mqQT5QSmyUSKjcsHmTt5CTQV",
+  "owner": "CPrKAjJfYEPw5NA5gNsVVGyDchgiwEWPp8j2vEwrUthf",
+  "tokenMint": "So11111111111111111111111111111111111111112",
+  "treasury": "CPrKAjJfYEPw5NA5gNsVVGyDchgiwEWPp8j2vEwrUthf",
+  "priceSolPerToken": 0.1,
+  "startTime": "2025-12-03T19:33:06.000Z",
+  "endTime": "2026-01-02T19:33:06.000Z",
+  "totalAllocation": 1000000,
+  "sold": 0,
+  "transactionSignature": "RBo6MXSE72SEisPk2t1B8vmzrF1mSqb84ppx2uK2R3HAZGzBL3XFXMRDP52hTYCFgchEWom2NCQKZWPrBEHmCoM",
+  "network": "devnet"
+}
