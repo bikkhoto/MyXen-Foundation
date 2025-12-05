@@ -1,7 +1,0 @@
-Wallet List with address: 
-1. Treasury Wallet: Azvjj21uXQzHbM9VHhyDfdbj14HD8Tef7ZuC1p7sEMk9 (All Fund will move here)
-2. $MYXN Mint: 6S4eDdYXABgtmuk3waLM63U2KHgExcD9mco7MuyG9f5G (Core Token Mint Wallet)
-3. $MYXN Burn Wallet: HuyT8sNPJMnh9vgJ43PXU4TY696WTWSdh1LBX53ZVox9 ( From Treasury wallet - manually & offical MyXen Foundation on-chain burn wallet)
-4. $MYXN Charity Wallet: DDoiUCeoUNHHCV5sLT3rgFjLpLUM76tLCUMnAg52o8vK (From Treasury wallet - manually plus From Platform fee Charity portion will transfer here).
-5. $MYXN HR wallet: Hv8QBqqSfD4nC6N8qZBo7iJE9QiHLnoXJ6sV2hk1XpoR (From Treasury wallet - manually plus From Platform fee Transfer here its a official HR wallet for spending organization cost)
-6. $MYXN Marketing: 4egNUZa2vNBwmc633GAjworDPEJD2F1HK6pSvMnC3WSv (From Treasury wallet - manually transfer for spending on-chain Marketing)
