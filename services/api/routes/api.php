@@ -146,3 +146,48 @@ Route::prefix('v1/sale')->group(function () {
     // Get vouchers for a specific buyer (public read)
     Route::get('/vouchers/{buyer_pubkey}', [VoucherController::class, 'getBuyerVouchers']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| MYXN Token Routes (v1)
+|--------------------------------------------------------------------------
+| Routes for MYXN token operations and service wallets
+*/
+Route::prefix('v1/token')->group(function () {
+    // Public token info
+    Route::get('/info', [\App\Http\Controllers\Api\TokenController::class, 'info']);
+    Route::get('/service-wallets', [\App\Http\Controllers\Api\TokenController::class, 'serviceWallets']);
+
+    // Authenticated token operations
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/balance', [\App\Http\Controllers\Api\TokenController::class, 'balance']);
+        Route::post('/transfer', [\App\Http\Controllers\Api\TokenController::class, 'transfer']);
+        Route::post('/burn', [\App\Http\Controllers\Api\TokenController::class, 'burn']);
+        Route::get('/transactions', [\App\Http\Controllers\Api\TokenController::class, 'transactions']);
+        Route::get('/transactions/{id}', [\App\Http\Controllers\Api\TokenController::class, 'transactionDetails']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Financial Programs Routes (v1)
+|--------------------------------------------------------------------------
+| Routes for MYXN financial programs (staking, lending, savings, rewards)
+*/
+Route::prefix('v1/programs')->group(function () {
+    // Public program listings
+    Route::get('/', [\App\Http\Controllers\Api\FinancialProgramController::class, 'index']);
+    Route::get('/{id}', [\App\Http\Controllers\Api\FinancialProgramController::class, 'show']);
+
+    // Authenticated program operations
+    Route::middleware('auth:sanctum')->group(function () {
+        // User participations
+        Route::get('/my/participations', [\App\Http\Controllers\Api\FinancialProgramController::class, 'myParticipations']);
+        Route::get('/my/participations/{id}', [\App\Http\Controllers\Api\FinancialProgramController::class, 'participationDetails']);
+
+        // Program enrollment and management
+        Route::post('/{id}/enroll', [\App\Http\Controllers\Api\FinancialProgramController::class, 'enroll']);
+        Route::post('/participations/{id}/withdraw', [\App\Http\Controllers\Api\FinancialProgramController::class, 'withdraw']);
+        Route::post('/participations/{id}/claim-rewards', [\App\Http\Controllers\Api\FinancialProgramController::class, 'claimRewards']);
+    });
+});

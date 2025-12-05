@@ -17,7 +17,7 @@ anchor_presale = "7RMrnnQC1pckXgLWdqw6mqQT5QSmyUSKjcsHmTt5CTQV"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

@@ -402,6 +402,106 @@ class TracingService
     }
 
     /**
+     * Record an event in a span (alias for addEvent).
+     *
+     * @param string $spanId
+     * @param string $eventName
+     * @param array $attributes
+     * @return void
+     */
+    public function recordEvent(string $spanId, string $eventName, array $attributes = []): void
+    {
+        $this->addEvent($spanId, $eventName, $attributes);
+    }
+
+    /**
+     * Set the status of a span.
+     *
+     * @param string $spanId
+     * @param string $status ('ok', 'error')
+     * @param string|null $message
+     * @return void
+     */
+    public function setSpanStatus(string $spanId, string $status, ?string $message = null): void
+    {
+        if (!$this->enabled || !isset($this->activeSpans[$spanId])) {
+            return;
+        }
+
+        $this->activeSpans[$spanId]['status'] = $status;
+        if ($message) {
+            $this->activeSpans[$spanId]['error'] = ['message' => $message];
+        }
+    }
+
+    /**
+     * Record a token transfer event.
+     *
+     * @param string $spanId
+     * @param string $fromAddress
+     * @param string $toAddress
+     * @param float $amount
+     * @param string|null $txHash
+     * @return void
+     */
+    public function recordTokenTransfer(string $spanId, string $fromAddress, string $toAddress, float $amount, ?string $txHash = null): void
+    {
+        $this->recordEvent($spanId, 'token_transfer', [
+            'from_address' => $fromAddress,
+            'to_address' => $toAddress,
+            'amount' => $amount,
+            'tx_hash' => $txHash,
+        ]);
+    }
+
+    /**
+     * Record a financial operation event.
+     *
+     * @param string $spanId
+     * @param string $operation
+     * @param array $details
+     * @return void
+     */
+    public function recordFinancialOperation(string $spanId, string $operation, array $details = []): void
+    {
+        $this->recordEvent($spanId, 'financial_operation', array_merge([
+            'operation' => $operation,
+        ], $details));
+    }
+
+    /**
+     * Record a service wallet operation.
+     *
+     * @param string $spanId
+     * @param string $walletType
+     * @param string $operation
+     * @param array $details
+     * @return void
+     */
+    public function recordServiceWalletOperation(string $spanId, string $walletType, string $operation, array $details = []): void
+    {
+        $this->recordEvent($spanId, 'service_wallet_operation', array_merge([
+            'wallet_type' => $walletType,
+            'operation' => $operation,
+        ], $details));
+    }
+
+    /**
+     * Get trace context for propagation (alias for getTraceContext).
+     *
+     * @return array
+     */
+    public function getContext(): array
+    {
+        $lastSpanId = array_key_last($this->activeSpans);
+        if ($lastSpanId) {
+            return $this->getTraceContext($lastSpanId);
+        }
+        return [];
+    }
+
+
+    /**
      * Get tracing configuration info.
      *
      * @return array
@@ -413,5 +513,24 @@ class TracingService
             'service_name' => $this->serviceName,
             'endpoint' => $this->endpoint,
         ];
+    }
+
+    /**
+     * Flush any pending spans.
+     * This exports all active spans before shutdown.
+     *
+     * @return void
+     */
+    public function flush(): void
+    {
+        if (!$this->enabled) {
+            return;
+        }
+
+        foreach ($this->activeSpans as $spanId => $span) {
+            $this->endSpan($spanId);
+        }
+
+        $this->activeSpans = [];
     }
 }
