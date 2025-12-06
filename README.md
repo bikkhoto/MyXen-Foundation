@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://github.com/bikkhoto/MyXen-Foundation/blob/main/examples/git%20readme.png" alt="MyXenPay Banner" width="100%">
+</div>
+
 # MyXen Foundation V2 — MyXenPay Ecosystem
 
 A production-ready monorepo containing the MyXenPay ecosystem: Laravel backend API and Flutter mobile application.
@@ -186,6 +190,13 @@ For security issues, please email security@myxenpay.com instead of using public 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
+
+## 🔗 Related Repositories
+
+- [**Solana DEX Trading Platform**](https://github.com/bikkhoto/Solana-DEX-Trading-Platform.git) - Decentralized exchange platform on Solana
+- [**MyXen Mobile Application**](https://github.com/bikkhoto/MyXen-Mobile-Application.git) - Flutter mobile app for MyXenPay
+- [**MyXen Foundation**](https://github.com/bikkhoto/MyXen-Foundation.git) - Core foundation repository
+- [**MYXN Token**](https://github.com/bikkhoto/MYXN-Token.git) - Solana SPL token smart contracts
 
 ## Next Steps
 
@@ -523,3 +534,21 @@ Home | Pay | Travel | Store | Profile
 * Fully automated Governance DAO
 * AI-driven fraud detection
 * Education & skill platform for Women's Empowerment.
+
+---
+
+## 🌐 Connect With Us
+
+<div align="center">
+  
+[![Website](https://img.shields.io/badge/Website-myxenpay.finance-blue?style=for-the-badge&logo=google-chrome&logoColor=white)](https://myxenpay.finance)
+[![Twitter](https://img.shields.io/badge/Twitter-@myxenpay-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://x.com/myxenpay)
+[![Telegram](https://img.shields.io/badge/Telegram-myxenpay-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/myxenpay)
+[![Whitepaper](https://img.shields.io/badge/Whitepaper-Read%20Now-green?style=for-the-badge&logo=read-the-docs&logoColor=white)](https://myxenpay.finance/whitepaper.php)
+
+[![Reddit](https://img.shields.io/badge/Reddit-MyXen_Inc-FF4500?style=for-the-badge&logo=reddit&logoColor=white)](https://www.reddit.com/user/MyXen_Inc/)
+[![Medium](https://img.shields.io/badge/Medium-@myxeninc-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@myxeninc)
+[![Instagram](https://img.shields.io/badge/Instagram-myxenp_inc-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/myxenp_inc/)
+[![Facebook](https://img.shields.io/badge/Facebook-myxen.foundation-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/myxen.foundation/)
+
+</div>
